@@ -33,6 +33,17 @@ func (m *Matcher) That(actual interface{}) *Matcher {
 	return m
 }
 
+func (m *Matcher) ThatPanics(actual func()) {
+	defer func() {
+		if r := recover(); r == nil {
+			m.t.Errorf("[%s] Test did not panic.", testLine())
+			m.match = false
+		}
+	}()
+	m.match = true
+	actual()
+}
+
 // IsNil verifies the tested valid is `nil`
 func (m *Matcher) IsNil() *Matcher {
 	m.match = !reflect.ValueOf(m.actual).IsValid()
@@ -104,7 +115,7 @@ func (m *Matcher) IsEqualTo(expected interface{}) *Matcher {
 	return m
 }
 
-// stringValue uses reflection to get the value and convert it to a string
+// stringValue uses reflection to convert a `reflect.Value` to a string for
 // use in error messages.
 func stringValue(rv reflect.Value) string {
 	switch rv.Kind() {
@@ -142,7 +153,21 @@ func testLine() string {
 			source = i - 1
 		}
 	}
-	return strings.TrimSpace(lines[source])
+
+	line := lines[source]
+
+	len := len(line)
+	if index := strings.LastIndex(line, " +"); index >= 0 {
+		len = index
+	}
+
+	if index := strings.LastIndex(line, "/"); index >= 0 {
+		line = line[index + 1:len]
+	} else if index := strings.LastIndex(line, "\\"); index >= 0 {
+		line = line[index + 1:len]
+	}
+
+	return line
 }
 
 // The following is lifted from https://golang.org/src/text/template/funcs.go

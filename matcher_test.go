@@ -1,6 +1,8 @@
 package assert
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestWith(t *testing.T) {
 	assert := With(t)
@@ -263,5 +265,32 @@ func TestMatcher_Equals_WithDifferentTypes(t *testing.T) {
 
 	if assert.match == true {
 		t.Error("IsEqualTo matcher failed")
+	}
+}
+
+func TestMatcher_ThatPanics_WithPanic(t *testing.T) {
+	assert := With(t)
+	p := func() {
+		panic("Panic! at the Disco")
+	}
+
+	assert.ThatPanics(p)
+
+	if assert.match == false {
+		t.Error("ThatPanics matcher failed.")
+	}
+}
+
+func TestMatcher_ThatPanics_WithoutPanic(t *testing.T) {
+	assert := With(new(testing.T))
+
+	p := func() {
+		// Do nothing
+	}
+
+	assert.ThatPanics(p)
+
+	if assert.match == true {
+		t.Error("ThatPanics matcher failed.")
 	}
 }
