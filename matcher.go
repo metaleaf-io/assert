@@ -56,6 +56,20 @@ func (m *Matcher) IsNotNil() *Matcher {
 	return m
 }
 
+// IsEmpty matches an empty string.
+func (m *Matcher) IsEmpty() *Matcher {
+	v := reflect.ValueOf(m.actual)
+	m.match = v.IsValid() && v.Kind() == reflect.String && len(v.String()) == 0
+	return m
+}
+
+// IsNotEmpty matches a non-empty string.
+func (m *Matcher) IsNotEmpty() *Matcher {
+	v := reflect.ValueOf(m.actual)
+	m.match = v.IsValid() && v.Kind() == reflect.String && len(v.String()) > 0
+	return m
+}
+
 // IsEqualTo verifies that the actual value capture in `That()` is equal to the
 // expected value.
 func (m *Matcher) IsEqualTo(expected interface{}) *Matcher {

@@ -162,6 +162,58 @@ func TestMatcher_IsNotNil_WithObject(t *testing.T) {
 	}
 }
 
+func TestMatcher_IsEmpty_WithEmptyString(t *testing.T) {
+	assert := With(t).That("").IsEmpty()
+
+	if assert == nil {
+		t.Error("IsNil returned nil")
+		return
+	}
+
+	if assert.match == false {
+		t.Error("IsNotNil matcher failed.")
+	}
+}
+
+func TestMatcher_IsEmpty_WithString(t *testing.T) {
+	assert := With(t).That("abc").IsEmpty()
+
+	if assert == nil {
+		t.Error("IsNil returned nil")
+		return
+	}
+
+	if assert.match == true {
+		t.Error("IsNotNil matcher failed.")
+	}
+}
+
+func TestMatcher_IsNotEmpty_WithString(t *testing.T) {
+	assert := With(t).That("abc").IsNotEmpty()
+
+	if assert == nil {
+		t.Error("IsNil returned nil")
+		return
+	}
+
+	if assert.match == false {
+		t.Error("IsNotNil matcher failed.")
+	}
+}
+
+func TestMatcher_IsNotEmpty_WithEmptyString(t *testing.T) {
+	assert := With(t).That("").IsNotEmpty()
+
+	if assert == nil {
+		t.Error("IsNil returned nil")
+		return
+	}
+
+	if assert.match == true {
+		t.Error("IsNotNil matcher failed.")
+	}
+}
+
 func TestMatcher_Equals_WithNil(t *testing.T) {
 	assert := With(t).That(nil).IsEqualTo(nil)
 
