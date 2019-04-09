@@ -9,6 +9,10 @@ import (
 	"testing"
 )
 
+var (
+	errorInterface  = reflect.TypeOf((*error)(nil)).Elem()
+)
+
 // Matcher hold the current state of the assertion.
 type Matcher struct {
 	t		*testing.T
@@ -46,27 +50,44 @@ func (m *Matcher) ThatPanics(actual func()) {
 
 // IsNil verifies the tested valid is `nil`
 func (m *Matcher) IsNil() *Matcher {
-	m.match = !reflect.ValueOf(m.actual).IsValid()
+	if m.match = reflect.TypeOf(m.actual) == nil; !m.match {
+		m.t.Errorf("[%s] is not nil", testLine())
+	}
 	return m
 }
 
 // IsNotNil verifies the tested value is not `nil`
 func (m *Matcher) IsNotNil() *Matcher {
-	m.match = reflect.ValueOf(m.actual).IsValid()
+	if m.match = reflect.TypeOf(m.actual) != nil; !m.match {
+		m.t.Errorf("[%s] is nil", testLine())
+	}
 	return m
 }
 
 // IsEmpty matches an empty string.
 func (m *Matcher) IsEmpty() *Matcher {
 	v := reflect.ValueOf(m.actual)
-	m.match = v.IsValid() && v.Kind() == reflect.String && len(v.String()) == 0
+	if m.match = v.IsValid() && v.Kind() == reflect.String && len(v.String()) == 0; !m.match {
+		m.t.Errorf("[%s] is not empty", testLine())
+	}
 	return m
 }
 
 // IsNotEmpty matches a non-empty string.
 func (m *Matcher) IsNotEmpty() *Matcher {
 	v := reflect.ValueOf(m.actual)
-	m.match = v.IsValid() && v.Kind() == reflect.String && len(v.String()) > 0
+	if m.match = v.IsValid() && v.Kind() == reflect.String && len(v.String()) > 0; !m.match {
+		m.t.Errorf("[%s] is empty", testLine())
+	}
+	return m
+}
+
+// IsOk expects the actual value to be nil and the type to be an instance of error.
+func (m *Matcher) IsOk() *Matcher {
+	t := reflect.TypeOf(m.actual)
+	if m.match = t == nil || !t.Implements(errorInterface); !m.match {
+		m.t.Errorf("[%s] is not ok", testLine())
+	}
 	return m
 }
 
@@ -80,7 +101,7 @@ func (m *Matcher) IsEqualTo(expected interface{}) *Matcher {
 	// Edge condition: both values are nil. The `IsNil` matcher should be
 	// used instead of IsEqualTo(), but we don't want to fail the test over
 	// semantics.
-	if !av.IsValid() && !ev.IsValid() {
+	if reflect.TypeOf(m.actual) == nil && reflect.TypeOf(expected) == nil {
 		m.match = true
 		return m
 	}
@@ -127,6 +148,59 @@ func (m *Matcher) IsEqualTo(expected interface{}) *Matcher {
 	}
 
 	return m
+}
+
+// IsGreaterThan matches if the actual value is greater than the expected value.
+func (m *Matcher) IsGreaterThan(expected interface{}) *Matcher {
+	k, err := typeCheck(m.actual, expected)
+	if err != nil {
+		m.match = false
+		m.t.Error(err)
+	} else {
+		av := reflect.ValueOf(m.actual)
+		ev := reflect.ValueOf(expected)
+		switch k {
+		case floatKind:
+			m.match = av.Float() > ev.Float()
+		case intKind:
+			m.match = av.Int() > ev.Int()
+		case uintKind:
+			m.match = av.Uint() > ev.Uint()
+		default:
+			m.match = false
+			m.t.Error(errBadType)
+		}
+	}
+	return m
+}
+
+func typeCheck(actual interface{}, expected interface{}) (kind, error) {
+	if reflect.TypeOf(actual) == nil {
+		return invalidKind, errors.New("Actual value was nil")
+	}
+
+	if reflect.TypeOf(expected) == nil {
+		return invalidKind, errors.New("Expected value was nil")
+	}
+
+	av := reflect.ValueOf(actual)
+	ev := reflect.ValueOf(expected)
+
+	ak, err := basicKind(av)
+	if err != nil {
+		return invalidKind, errors.New("Actual " + err.Error())
+	}
+
+	ek, err := basicKind(ev)
+	if err != nil {
+		return invalidKind, errors.New("Expected " + err.Error())
+	}
+
+	if ak != ek {
+		return invalidKind, errBadComparison
+	}
+
+	return ak, nil
 }
 
 // stringValue uses reflection to convert a `reflect.Value` to a string for

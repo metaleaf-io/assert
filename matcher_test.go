@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -46,7 +47,7 @@ func TestMatcher_IsNil_WithNil(t *testing.T) {
 }
 
 func TestMatcher_IsNil_WithInt(t *testing.T) {
-	assert := With(t).That(0).IsNil()
+	assert := With(new(testing.T)).That(0).IsNil()
 
 	if assert == nil {
 		t.Error("IsNil returned nil")
@@ -59,7 +60,7 @@ func TestMatcher_IsNil_WithInt(t *testing.T) {
 }
 
 func TestMatcher_IsNil_WithString(t *testing.T) {
-	assert := With(t).That("String").IsNil()
+	assert := With(new(testing.T)).That("String").IsNil()
 
 	if assert == nil {
 		t.Error("IsNil returned nil")
@@ -72,7 +73,7 @@ func TestMatcher_IsNil_WithString(t *testing.T) {
 }
 
 func TestMatcher_IsNil_WithSlice(t *testing.T) {
-	assert := With(t).That(make([]byte, 0)).IsNil()
+	assert := With(new(testing.T)).That(make([]byte, 0)).IsNil()
 
 	if assert == nil {
 		t.Error("IsNil returned nil")
@@ -85,7 +86,7 @@ func TestMatcher_IsNil_WithSlice(t *testing.T) {
 }
 
 func TestMatcher_IsNil_WithObject(t *testing.T) {
-	assert := With(t).That(new(Matcher)).IsNil()
+	assert := With(new(testing.T)).That(new(Matcher)).IsNil()
 
 	if assert == nil {
 		t.Error("IsNil returned nil")
@@ -98,10 +99,10 @@ func TestMatcher_IsNil_WithObject(t *testing.T) {
 }
 
 func TestMatcher_IsNotNil_WithNil(t *testing.T) {
-	assert := With(t).That(nil).IsNotNil()
+	assert := With(new(testing.T)).That(nil).IsNotNil()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotNil returned nil")
 		return
 	}
 
@@ -114,7 +115,7 @@ func TestMatcher_IsNotNil_WithInt(t *testing.T) {
 	assert := With(t).That(0).IsNotNil()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotNil returned nil")
 		return
 	}
 
@@ -127,7 +128,7 @@ func TestMatcher_IsNotNil_WithString(t *testing.T) {
 	assert := With(t).That("String").IsNotNil()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotNil returned nil")
 		return
 	}
 
@@ -140,7 +141,7 @@ func TestMatcher_IsNotNil_WithSlice(t *testing.T) {
 	assert := With(t).That(make([]byte, 0)).IsNotNil()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotNil returned nil")
 		return
 	}
 
@@ -153,7 +154,7 @@ func TestMatcher_IsNotNil_WithObject(t *testing.T) {
 	assert := With(t).That(new(Matcher)).IsNotNil()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotNil returned nil")
 		return
 	}
 
@@ -166,25 +167,25 @@ func TestMatcher_IsEmpty_WithEmptyString(t *testing.T) {
 	assert := With(t).That("").IsEmpty()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsEmpty returned nil")
 		return
 	}
 
 	if assert.match == false {
-		t.Error("IsNotNil matcher failed.")
+		t.Error("IsEmpty matcher failed.")
 	}
 }
 
 func TestMatcher_IsEmpty_WithString(t *testing.T) {
-	assert := With(t).That("abc").IsEmpty()
+	assert := With(new(testing.T)).That("abc").IsEmpty()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsEmpty returned nil")
 		return
 	}
 
 	if assert.match == true {
-		t.Error("IsNotNil matcher failed.")
+		t.Error("IsEmpty matcher failed.")
 	}
 }
 
@@ -192,25 +193,52 @@ func TestMatcher_IsNotEmpty_WithString(t *testing.T) {
 	assert := With(t).That("abc").IsNotEmpty()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotEmpty returned nil")
 		return
 	}
 
 	if assert.match == false {
-		t.Error("IsNotNil matcher failed.")
+		t.Error("IsNotEmpty matcher failed.")
 	}
 }
 
 func TestMatcher_IsNotEmpty_WithEmptyString(t *testing.T) {
-	assert := With(t).That("").IsNotEmpty()
+	assert := With(new(testing.T)).That("").IsNotEmpty()
 
 	if assert == nil {
-		t.Error("IsNil returned nil")
+		t.Error("IsNotEmpty returned nil")
 		return
 	}
 
 	if assert.match == true {
-		t.Error("IsNotNil matcher failed.")
+		t.Error("IsNotEmpty matcher failed.")
+	}
+}
+
+func TestMatcher_IsOk_WithError(t *testing.T) {
+	err := errors.New("test")
+	assert := With(new(testing.T)).That(err).IsOk()
+
+	if assert == nil {
+		t.Error("IsOk returned nil")
+		return
+	}
+
+	if assert.match == true {
+		t.Error("IsOk matcher failed.")
+	}
+}
+
+func TestMatcher_IsOk_WithNil(t *testing.T) {
+	assert := With(new(testing.T)).That(nil).IsOk()
+
+	if assert == nil {
+		t.Error("IsOk returned nil")
+		return
+	}
+
+	if assert.match == false {
+		t.Error("IsOk matcher failed.")
 	}
 }
 
@@ -307,8 +335,7 @@ func TestMatcher_Equals_WithUint(t *testing.T) {
 }
 
 func TestMatcher_Equals_WithDifferentTypes(t *testing.T) {
-	tt := new(testing.T)
-	assert := With(tt).That(true).IsEqualTo(1.0)
+	assert := With(new(testing.T)).That(true).IsEqualTo(1.0)
 
 	if assert == nil {
 		t.Error("IsEqualTo returned nil")
@@ -317,6 +344,84 @@ func TestMatcher_Equals_WithDifferentTypes(t *testing.T) {
 
 	if assert.match == true {
 		t.Error("IsEqualTo matcher failed")
+	}
+}
+
+func TestMatcher_IsGreaterThan_WithFloat(t *testing.T) {
+	assert := With(new(testing.T)).That(3.14159).IsGreaterThan(3.14158)
+
+	if assert == nil {
+		t.Error("IsGreaterThan returned nil")
+		return
+	}
+
+	if assert.match == false {
+		t.Error("IsGreaterThan matcher failed")
+	}
+}
+
+func TestMatcher_IsGreaterThan_WithFloat2(t *testing.T) {
+	assert := With(new(testing.T)).That(3.14158).IsGreaterThan(3.14159)
+
+	if assert == nil {
+		t.Error("IsGreaterThan returned nil")
+		return
+	}
+
+	if assert.match == true {
+		t.Error("IsGreaterThan matcher failed")
+	}
+}
+
+func TestMatcher_IsGreaterThan_WithInt(t *testing.T) {
+	assert := With(new(testing.T)).That(1073741824).IsGreaterThan(-1073741824)
+
+	if assert == nil {
+		t.Error("IsGreaterThan returned nil")
+		return
+	}
+
+	if assert.match == false {
+		t.Error("IsGreaterThan matcher failed")
+	}
+}
+
+func TestMatcher_IsGreaterThan_WithInt2(t *testing.T) {
+	assert := With(new(testing.T)).That(-1073741824).IsGreaterThan(1073741824)
+
+	if assert == nil {
+		t.Error("IsGreaterThan returned nil")
+		return
+	}
+
+	if assert.match == true {
+		t.Error("IsGreaterThan matcher failed")
+	}
+}
+
+func TestMatcher_IsGreaterThan_WithUint(t *testing.T) {
+	assert := With(new(testing.T)).That(uint(1073741824)).IsGreaterThan(uint(1073741823))
+
+	if assert == nil {
+		t.Error("IsGreaterThan returned nil")
+		return
+	}
+
+	if assert.match == false {
+		t.Error("IsGreaterThan matcher failed")
+	}
+}
+
+func TestMatcher_IsGreaterThan_WithUint2(t *testing.T) {
+	assert := With(new(testing.T)).That(uint(1073741823)).IsGreaterThan(uint(1073741824))
+
+	if assert == nil {
+		t.Error("IsGreaterThan returned nil")
+		return
+	}
+
+	if assert.match == true {
+		t.Error("IsGreaterThan matcher failed")
 	}
 }
 
