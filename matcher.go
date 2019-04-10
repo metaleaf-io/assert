@@ -40,7 +40,7 @@ func (m *Matcher) That(actual interface{}) *Matcher {
 func (m *Matcher) ThatPanics(actual func()) {
 	defer func() {
 		if r := recover(); r == nil {
-			m.t.Errorf("[%s] Test did not panic.", testLine())
+			m.t.Errorf("[%s] Did not panic.", testLine())
 			m.match = false
 		}
 	}()
@@ -170,7 +170,12 @@ func (m *Matcher) IsGreaterThan(expected interface{}) *Matcher {
 			m.match = false
 			m.t.Error(errBadType)
 		}
+
+		if !m.match {
+			m.t.Errorf("[%s] expected: Greater Than <[%s]> but was <[%s]>", testLine(), stringValue(ev), stringValue(av))
+		}
 	}
+
 	return m
 }
 
