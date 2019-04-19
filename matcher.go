@@ -121,7 +121,7 @@ func (m *Matcher) IsEqualTo(expected interface{}) *Matcher {
 		}
 
 		if ak != ek {
-			m.t.Error(errBadComparison)
+			m.t.Errorf("[%s] %s", testLine(), errBadComparison)
 			return m
 		}
 
